@@ -1,0 +1,30 @@
+
+$FullList = Get-Content "C:\Temp\working\Test900List.txt"
+
+#This Cred is commented out because you only need to get creds once
+#$cred = get-credential
+$Restart = {restart-service BESClient -force}
+
+foreach ($Computer in $FullList)
+{
+  try 
+    {
+    Write-host "Attempting to reach $Computer"
+    Invoke-Command -ComputerName $Computer -ScriptBlock $Restart -Credential $cred -ErrorAction Stop
+        write-host "Able to reach $Computer" 
+        $SuccessList = [PsCustomObject] @{
+        ComputerName = $Computer
+        Code = "Successful"}
+        $SuccessList | Export-Csv C:\temp\RemoteBES\BESTotal.csv -Append
+    }
+
+    Catch
+        {
+		   Write-Host "$Computer was unreachable/Had error."
+            $FailList = [PsCustomObject] @{
+            ComputerName = $Computer
+            Code = "Unreachable/Error"}
+            $FailList2 | Export-Csv C:\temp\RemoteBES\BESTotal.csv -Append
+              }
+
+        }
